@@ -93,7 +93,7 @@ fig3 = px.choropleth(df_NewYork,
                    )
 
 # Add the New York state boundaries polygon trace to the figure
-fig.add_trace(ny_polygon)
+fig3.add_trace(ny_polygon)
 
 
 
