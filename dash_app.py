@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output, State
 import plotly.express as px
 from dash import dash_table
 import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
 
 
 
@@ -49,12 +50,52 @@ fig2 = fig2.update_layout(
     )
 graph2 = dcc.Graph(figure=fig2)
 
-#Map
-fig3 = px.choropleth(df_NewYork, locations='iso_alpha', 
-                    projection='natural earth', animation_frame="month",
-                    scope='USA',   #adding the scope as USA
-                    color='avg_temp_per_month', locationmode='ISO-3', 
-                    color_continuous_scale=px.colors.sequential.ice)
+#Choropleth map
+
+# Define the latitude and longitude coordinates for New York state boundary
+ny_center_lat = 40.730610
+ny_center_lon = -73.935242
+
+# Define the approximate range for the New York state boundary
+# You can adjust these values to fit the desired area
+ny_lat_range = (40.0, 45.0)
+ny_lon_range = (-80.0, -71.0)
+
+# Create a polygon outline for New York state boundary
+ny_coordinates = [
+    [ny_lon_range[0], ny_lat_range[0]],
+    [ny_lon_range[1], ny_lat_range[0]],
+    [ny_lon_range[1], ny_lat_range[1]],
+    [ny_lon_range[0], ny_lat_range[1]],
+    [ny_lon_range[0], ny_lat_range[0]]  # Repeat of first point to close the polygon
+]
+
+# Create a polygon trace for New York state boundary
+ny_polygon = go.Scattergeo(
+    locationmode='USA-states',
+    lon=[point[0] for point in ny_coordinates],
+    lat=[point[1] for point in ny_coordinates],
+    mode='lines',
+    line=dict(color='blue', width=3),
+    fill='toself'  # Fills the polygon with the specified color
+)
+
+# Plot the choropleth map using Plotly Express
+fig3 = px.choropleth(df_NewYork, 
+                    geojson=ny_polygon,            # GeoJSON data
+                    locations=df_NewYork['month'],  # Using 'month' column as locations
+                    color='avg_temp_per_month',    # Column to color by
+                    color_continuous_scale="Viridis",  # Color scale
+                    range_color=(0, 100),           # Range of colors
+                    labels={'avg_temp_per_month': 'Average Temp per Month'},  # Labels for hover data
+                    hover_data={'avg_temp_per_month': True, 'avg_chance_of_rain_per_month': True},  # Data to display on hover
+                    title="Average Temperature per Month in New York"  # Plot title
+                   )
+
+# Add the New York state boundaries polygon trace to the figure
+fig.add_trace(ny_polygon)
+
+
 
 fig3 = fig3.update_layout(
         plot_bgcolor="#222222", paper_bgcolor="#222222", font_color="white", geo_bgcolor="#222222"
@@ -66,8 +107,10 @@ graph3 = dcc.Graph(figure=fig3)
 
 
 
+#THE DASH-APP
+
+
 app =dash.Dash(external_stylesheets=[dbc.themes.DARKLY])
-server = app.server
 app.layout = html.Div([html.H1('Average Temperature Forecast for New-York City, 2023', style={'textAlign': 'center', 'color': '#636EFA'}), 
                        html.Div(html.P("A review of average temperatures forcast data for New York City for 8months"), 
                                 style={'marginLeft': 50, 'marginRight': 25}),
@@ -80,4 +123,4 @@ app.layout = html.Div([html.H1('Average Temperature Forecast for New-York City, 
 ])
 
 if __name__ == '__main__':
-     app.run_server()
+    app.run_server(port=8088)
