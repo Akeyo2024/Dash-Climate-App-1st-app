@@ -111,6 +111,7 @@ graph3 = dcc.Graph(figure=fig3)
 
 
 app =dash.Dash(external_stylesheets=[dbc.themes.DARKLY])
+server= app.server
 app.layout = html.Div([html.H1('Average Temperature Forecast for New-York City, 2023', style={'textAlign': 'center', 'color': '#636EFA'}), 
                        html.Div(html.P("A review of average temperatures forcast data for New York City for 8months"), 
                                 style={'marginLeft': 50, 'marginRight': 25}),
